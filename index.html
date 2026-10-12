@@ -140,6 +140,19 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         #lookupButton { min-height: 44px; min-width: 150px; }
+        .submit-status:empty {
+            display: none;
+        }
+        .submit-status {
+            background: #eef5fc;
+            border: 1px solid #d2e1f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 0 0 10px;
+            text-align: center;
+            font-weight: 600;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -188,9 +201,9 @@
                 <div class="form-group"><label for="phoneNumber">सम्पर्क / WhatsApp नम्बर:</label><input id="phoneNumber" type="tel" readonly required placeholder="स्वतः देखिनेछ"><p id="mobileHelp" class="instruction"></p></div>
                 <div class="form-group"><label for="designation">पद (Designation):</label><input id="designation" required maxlength="100" placeholder="आफ्नो पद लेख्नुहोस्"></div>
                 <div class="form-group"><label for="memberType">सदस्य प्रकार:</label><select id="memberType" required><option value="Lion">Lion Member</option><option value="Leo">Leo Member</option></select></div>
+                <p id="formStatus" class="status submit-status" role="status"></p>
                 <button type="submit" id="submitButton" class="btn-submit" disabled>Submit &amp; Send to WhatsApp</button>
                 <p class="instruction">दर्ता सेभ भएको पुष्टि भएपछि WhatsApp खुल्नेछ । भौचरको फोटो WhatsApp मा आफैँ संलग्न गर्नुहोस् ।</p>
-                <p id="formStatus" class="status" role="status"></p>
                 <a id="whatsappLink" class="button-link" target="_blank" rel="noopener" hidden>WhatsApp खोल्नुहोस्</a>
             </form>
         </section>
