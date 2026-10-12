@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Cabinet Meeting Registration</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f4f6f9; color: #263648; font-family: 'Segoe UI', sans-serif; }
+        header { background: #003366; color: white; padding: 18px 5%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        header a { color: white; text-decoration: none; }
+        main { width: 94%; max-width: 1250px; margin: 25px auto; }
+        section { background: white; border-radius: 14px; padding: 22px; margin-bottom: 20px; box-shadow: 0 3px 12px #0033660d; }
+        h2, h3 { color: #003366; }
+        label { display: block; font-size: 14px; margin-bottom: 6px; font-weight: 600; }
+        input, select { width: 100%; padding: 11px; border: 1px solid #ccd6e1; border-radius: 8px; font-size: 14px; }
+        input[readonly] { background: #edf2f7; }
+        button, .button-link { min-height: 44px; padding: 10px 14px; background: #003366; color: white; border: 0; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        button:disabled { opacity: .55; cursor: wait; }
+        .danger { background: #b52b35; }
+        .form-group { margin-bottom: 16px; }
+        .settings-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+        #loginForm { max-width: 400px; margin: auto; }
+        .instruction { font-size: 13px; color: #667487; line-height: 1.6; }
+        .status { color: #003366; white-space: pre-wrap; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; min-width: 1100px; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #dce3eb; padding: 10px; text-align: left; }
+        th { background: #003366; color: white; }
+        td button { margin: 3px; }
+        dialog { margin: auto; width: 94%; max-width: 780px; max-height: 90vh; overflow: auto; border: 0; border-radius: 14px; padding: 24px; }
+        dialog::backdrop { background: #0007; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #ffffff66; border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 7px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        [hidden] { display: none !important; }
+        @media(max-width:600px) { .settings-grid { grid-template-columns: 1fr; } section { padding: 16px; } header { font-size: 14px; } }
+    </style>
+</head>
+<body>
+    <header><strong>District 325 F · Admin Panel</strong><a href="index.html">← Registration Page</a></header>
+    <main>
+        <p id="adminStatus" class="status" role="status"></p>
+        <section id="loginSection">
+            <form id="loginForm">
+                <h2>Admin Login</h2>
+                <div class="form-group"><label for="adminUser">Username</label><input id="adminUser" autocomplete="username" required></div>
+                <div class="form-group"><label for="adminPassword">Password</label><input id="adminPassword" type="password" autocomplete="current-password" required></div>
+                <button>Login</button>
+            </form>
+        </section>
+        <div id="adminContent" hidden>
+            <button id="logoutButton">Logout</button>
+            <section>
+                <h2>Meeting Settings</h2>
+                <p class="instruction">नयाँ Meeting का लागि नयाँ MeetingID राख्नुहोस् । विवरण यहीँबाट परिवर्तन गर्न मिल्छ । Admin खाताहरू User Sheet बाट व्यवस्थापन हुन्छन् ।</p>
+                <form id="settingsForm"><div class="settings-grid" id="settingsFields"></div><button style="margin-top:16px">Save Settings</button></form>
+            </section>
+            <section>
+                <h2>Registration Member Details</h2>
+                <button id="addRegistration" style="margin-bottom:16px">+ Add Registration</button>
+                <label for="meetingFilter">Meeting</label><select id="meetingFilter" style="margin-bottom:16px"></select>
+                <div class="table-responsive"><table><thead><tr><th>Member No.</th><th>Name / Club</th><th>Mobile</th><th>Designation</th><th>Type / Fee</th><th>Status</th><th>Actions</th></tr></thead><tbody id="adminRows"></tbody></table></div>
+            </section>
+        </div>
+    </main>
+    <dialog id="registrationDialog">
+        <h2 id="editorTitle">Add Registration</h2>
+        <p class="instruction">यी परिवर्तन Registration रेकर्डमा मात्र लागू हुन्छन् । मुख्य Member Database परिवर्तन हुँदैन ।</p>
+        <form id="registrationEditor">
+            <div class="settings-grid">
+                <div><label for="editMembership">सदस्यता नम्बर</label><input id="editMembership" required maxlength="15"><button type="button" id="editLookup" style="margin-top:8px">सदस्य खोज्नुहोस्</button></div>
+                <div><label for="editName">Name</label><input id="editName" required maxlength="150"></div>
+                <div><label for="editClub">Club Name</label><input id="editClub" required maxlength="150"></div>
+                <div><label for="editMobile">Mobile</label><input id="editMobile" required maxlength="30"></div>
+                <div><label for="editDesignation">Designation</label><input id="editDesignation" required maxlength="100"></div>
+                <div><label for="editType">Member Type</label><select id="editType"><option>Lion</option><option>Leo</option></select></div>
+                <div><label for="editFee">Fee</label><input id="editFee" type="number" min="0" step="0.01" required></div>
+                <div><label for="editPayment">Payment Status</label><select id="editPayment"><option>PENDING</option><option>PAID</option></select></div>
+            </div>
+            <p id="editStatus" class="status" role="status"></p>
+            <button type="submit">Save Registration</button>
+            <button type="button" id="cancelEditor">Cancel</button>
+        </form>
+    </dialog>
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUx5ozk7HzE_g93NR2K9V-uitw3bf9be9O75WPa2k0wFDivpeAVsQnkkmoFs9lGylw/exec';
+        const $ = id => document.getElementById(id);
+        let token = sessionStorage.getItem('cabinetAdminToken') || '';
+        let registrationRows = [];
+        let callbackSequence = 0;
+        let adminSettings = {};
+        let editingID = '';
+        let editingMeeting = '';
+        function readApi(action, params = {}, timeoutMs = 30000) {
+            return new Promise((resolve, reject) => {
+                const callback = 'cabinetCallback' + (++callbackSequence);
+                const script = document.createElement('script');
+                const url = new URL(SCRIPT_URL);
+                Object.entries({ action, ...params, callback }).forEach(([key, value]) => url.searchParams.set(key, value));
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    script.remove();
+                    delete window[callback];
+                };
+                const timeout = setTimeout(() => { cleanup(); reject(new Error('समय सकियो । फेरि प्रयास गर्नुहोस् ।')); }, timeoutMs);
+                window[callback] = data => {
+                    cleanup();
+                    if (data.ok === false) reject(new Error(data.error));
+                    else resolve(data);
+                };
+                script.onerror = () => { cleanup(); reject(new Error('Server सँग सम्पर्क भएन । Deployment URL जाँच गर्नुहोस् ।')); };
+                script.src = url.href;
+                document.head.appendChild(script);
+            });
+        }
+
+        // An opaque POST is followed by a server result check; no false success.
+        async function writeApi(action, data = {}) {
+            const bytes = crypto.getRandomValues(new Uint8Array(24));
+            const ticket = Array.from(bytes, n => n.toString(16).padStart(2, '0')).join('');
+            const deadline = Date.now() + 60000;
+            const controller = new AbortController();
+            const postTimeout = setTimeout(() => controller.abort(), 25000);
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors', signal: controller.signal,
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                    body: JSON.stringify({ action, ...data, ticket })
+                });
+            } catch (error) {
+                // A redirect/network failure can happen after the server saved.
+                // Check the ticket before deciding whether the write failed.
+            } finally { clearTimeout(postTimeout); }
+            while (Date.now() < deadline) {
+                const remaining = deadline - Date.now();
+                try {
+                    const result = await readApi('result', { ticket }, Math.min(10000, remaining));
+                    if (!result.pending) return result;
+                } catch (error) {
+                    if (!error.message.includes('समय सकियो') && !error.message.includes('Server सँग')) throw error;
+                }
+                if (deadline - Date.now() > 1000) await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            throw new Error('Save को पुष्टि समयमै आएन । रेकर्ड सेभ भएको हुन सक्छ; फेरि Submit गर्नुअघि Admin मा जाँच गर्नुहोस् ।');
+        }
+
+        function cell(row, value, className = '') {
+            const td = document.createElement('td');
+            td.textContent = value;
+            td.className = className;
+            row.appendChild(td);
+            return td;
+        }
+
+        async function loadAdmin() {
+            const data = await readApi('adminData', { token });
+            registrationRows = data.registrations;
+            adminSettings = data.settings;
+            $('loginForm').hidden = true;
+            $('loginSection').hidden = true;
+            $('adminContent').hidden = false;
+            $('settingsFields').replaceChildren();
+            Object.entries(data.settings).forEach(([key, value]) => {
+                const wrapper = document.createElement('div');
+                const label = document.createElement('label');
+                label.textContent = key;
+                label.htmlFor = 'setting_' + key;
+                const input = document.createElement('input');
+                input.id = 'setting_' + key;
+                input.name = key;
+                input.value = value;
+                wrapper.append(label, input);
+                $('settingsFields').appendChild(wrapper);
+            });
+            const previous = $('meetingFilter').value || data.settings.MeetingID;
+            $('meetingFilter').replaceChildren();
+            const meetings = new Map([[data.settings.MeetingID, data.settings.MeetingName]]);
+            registrationRows.forEach(r => meetings.set(r.MeetingID, r.MeetingName));
+            meetings.forEach((name, id) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name + ' (' + id + ')';
+                $('meetingFilter').appendChild(option);
+            });
+            if (meetings.has(previous)) $('meetingFilter').value = previous;
+            renderAdminRows();
+        }
+
+        function renderAdminRows() {
+            $('adminRows').replaceChildren();
+            registrationRows.filter(r => r.MeetingID === $('meetingFilter').value).forEach(record => {
+                const row = document.createElement('tr');
+                [record.MembershipNumber, record.Name + ' / ' + record.ClubName, record.Mobile, record.Designation, record.MemberType + ' / Rs. ' + record.Fee, record.PaymentStatus].forEach(v => cell(row, v));
+                const button = document.createElement('button');
+                button.textContent = record.PaymentStatus === 'PAID' ? 'Mark Pending' : 'Confirm Paid';
+                button.addEventListener('click', async () => {
+                    if (!confirm(record.Name + ' को भुक्तानी स्थिति परिवर्तन गर्ने?')) return;
+                    button.disabled = true;
+                    try {
+                        await writeApi('payment', { token, id: record.ID, status: record.PaymentStatus === 'PAID' ? 'PENDING' : 'PAID' });
+                        await loadAdmin();
+
+                    } catch (error) { $('adminStatus').textContent = error.message; button.disabled = false; }
+                });
+                const actions = cell(row, '');
+                actions.appendChild(button);
+                const edit = document.createElement('button');
+                edit.textContent = 'Edit';
+                edit.addEventListener('click', () => openRegistration(record));
+                const remove = document.createElement('button');
+                remove.textContent = 'Delete';
+                remove.className = 'danger';
+                remove.addEventListener('click', async () => {
+                    if (!confirm(record.Name + ' को दर्ता हटाउने?')) return;
+                    remove.disabled = true;
+                    try {
+                        await writeApi('adminDeleteRegistration', { token, id: record.ID });
+                        await loadAdmin();
+                        $('adminStatus').textContent = 'दर्ता हटाइयो । सुरक्षित प्रतिलिपि Deleted_Registrations मा छ ।';
+                    } catch (error) { $('adminStatus').textContent = error.message; }
+                    finally { remove.disabled = false; }
+                });
+                actions.append(edit, remove);
+                $('adminRows').appendChild(row);
+            });
+        }
+
+        $('meetingFilter').addEventListener('change', renderAdminRows);
+        $('loginForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const button = event.submitter;
+            button.disabled = true;
+            $('adminStatus').textContent = 'Login हुँदैछ...';
+            try {
+                const result = await writeApi('login', { username: $('adminUser').value, password: $('adminPassword').value });
+                token = result.token;
+                sessionStorage.setItem('cabinetAdminToken', token);
+                $('adminPassword').value = '';
+                await loadAdmin();
+                $('adminStatus').textContent = '';
+            } catch (error) { $('adminStatus').textContent = error.message; }
+            finally { button.disabled = false; }
+        });
+        function clearSession() {
+            token = '';
+            sessionStorage.removeItem('cabinetAdminToken');
+            registrationRows = [];
+            $('adminRows').replaceChildren();
+            $('settingsFields').replaceChildren();
+            $('adminContent').hidden = true;
+            $('loginForm').hidden = false;
+            $('loginSection').hidden = false;
+            $('registrationDialog').close();
+        }
+        $('logoutButton').addEventListener('click', async () => {
+            const oldToken = token;
+            clearSession();
+            $('adminStatus').textContent = 'Logout भयो ।';
+            try { await writeApi('logout', { token: oldToken }); }
+            catch (error) { $('adminStatus').textContent = 'स्थानीय Logout भयो । Server session बन्द गर्न सकिएन; एक घण्टामा सकिनेछ ।'; }
+        });
+        $('settingsForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const button = event.submitter;
+            button.disabled = true;
+            try {
+                await writeApi('saveSettings', { token, settings: Object.fromEntries(new FormData(event.target)) });
+                await loadAdmin();
+
+                $('adminStatus').textContent = 'Settings सेभ भयो ।';
+            } catch (error) { $('adminStatus').textContent = error.message; }
+            finally { button.disabled = false; }
+        });
+
+        function openRegistration(record = null) {
+            editingID = record ? record.ID : '';
+            editingMeeting = record ? record.MeetingID : adminSettings.MeetingID;
+            $('editorTitle').textContent = record ? 'Edit Registration' : 'Add Registration — ' + adminSettings.MeetingName;
+            $('registrationEditor').reset();
+            $('editStatus').textContent = '';
+            const fields = {
+                editMembership: 'MembershipNumber', editName: 'Name', editClub: 'ClubName',
+                editMobile: 'Mobile', editDesignation: 'Designation', editType: 'MemberType',
+                editFee: 'Fee', editPayment: 'PaymentStatus'
+            };
+            if (record) Object.entries(fields).forEach(([id, key]) => $(id).value = record[key]);
+            else $('editFee').value = adminSettings.LionFee;
+            $('editMembership').readOnly = Boolean(record);
+            $('editLookup').hidden = Boolean(record);
+            $('registrationDialog').showModal();
+        }
+        $('addRegistration').addEventListener('click', () => openRegistration());
+        $('cancelEditor').addEventListener('click', () => $('registrationDialog').close());
+        $('editType').addEventListener('change', () => {
+            if (!editingID) $('editFee').value = $('editType').value === 'Lion' ? adminSettings.LionFee : adminSettings.LeoFee;
+        });
+        $('editLookup').addEventListener('click', async () => {
+            const number = $('editMembership').value.trim();
+            $('editLookup').disabled = true;
+            $('editLookup').innerHTML = '<span class="spinner"></span> सदस्य खोजिँदैछ...';
+            try {
+                const data = await readApi('member', { number });
+                if (number !== $('editMembership').value.trim()) return;
+                $('editName').value = data.member.name;
+                $('editClub').value = data.member.clubName;
+                $('editMobile').value = data.member.mobile;
+                $('editStatus').textContent = 'सदस्य विवरण भेटियो ।';
+            } catch (error) { $('editStatus').textContent = error.message; }
+            finally {
+                $('editLookup').disabled = false;
+                $('editLookup').textContent = 'सदस्य खोज्नुहोस्';
+            }
+        });
+        $('registrationEditor').addEventListener('submit', async event => {
+            event.preventDefault();
+            const button = event.submitter;
+            button.disabled = true;
+            try {
+                await writeApi('adminSaveRegistration', {
+                    token, id: editingID, meetingID: editingMeeting,
+                    membershipNumber: $('editMembership').value.trim(),
+                    name: $('editName').value.trim(), clubName: $('editClub').value.trim(),
+                    mobile: $('editMobile').value.trim(), designation: $('editDesignation').value.trim(),
+                    memberType: $('editType').value, fee: $('editFee').value,
+                    paymentStatus: $('editPayment').value
+                });
+                $('registrationDialog').close();
+                await loadAdmin();
+                $('adminStatus').textContent = 'Registration सेभ भयो ।';
+            } catch (error) { $('editStatus').textContent = error.message; }
+            finally { button.disabled = false; }
+        });
+        if (token) loadAdmin().catch(error => {
+            $('adminStatus').textContent = error.message;
+            clearSession();
+        });
+    </script>
+</body>
+</html>
