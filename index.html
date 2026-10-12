@@ -126,11 +126,25 @@
             .settings-grid { grid-template-columns: 1fr; }
             .fees strong { font-size: 21px; }
         }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 7px;
+            vertical-align: middle;
+            border: 2px solid #ffffff66;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #lookupButton { min-height: 44px; min-width: 150px; }
     </style>
 </head>
 <body>
     <nav class="top-actions" aria-label="Admin access">
-        <button class="admin-launch" id="adminButton">Admin Login</button>
+        <a class="admin-launch button-link" href="admin.html">Admin Login</a>
     </nav>
     <header class="header">
         <img src="logo.png" alt="Lions Logo">
@@ -199,24 +213,6 @@
         </div>
     </section>
     <footer class="dev-footer">Designed by : <a href="tel:9851113811">Nirajan Aryal (9851113811)</a></footer>
-    <dialog id="adminDialog">
-        <div class="admin-top"><h3>Admin Panel</h3><button type="button" id="closeAdmin">Close</button></div>
-        <p id="adminStatus" class="status" role="status"></p>
-        <form id="loginForm">
-            <div class="form-group"><label for="adminUser">Username</label><input id="adminUser" autocomplete="username" required></div>
-            <div class="form-group"><label for="adminPassword">Password</label><input id="adminPassword" type="password" autocomplete="current-password" required></div>
-            <button>Login</button>
-        </form>
-        <div id="adminContent" hidden>
-            <button type="button" id="logoutButton">Logout</button>
-            <h3 style="margin-top:20px">Meeting Settings</h3>
-            <p class="instruction">नयाँ Meeting का लागि छुट्टै MeetingID राख्नुहोस् (जस्तै 2026-27-Third) । पुरानो Meeting को नाम वा ID परिवर्तन गरेर नयाँ Meeting नबनाउनुहोस्; नयाँ ID राख्दा पुराना दर्ता सुरक्षित रहन्छन् ।</p>
-            <form id="settingsForm"><div class="settings-grid" id="settingsFields"></div><button style="margin:15px 0">Save Settings</button></form>
-            <h3>Registrations / Payment Confirmation</h3>
-            <label for="meetingFilter">Meeting छान्नुहोस्</label><select id="meetingFilter" style="margin-bottom:15px"></select>
-            <div class="table-responsive"><table style="min-width:1000px"><thead><tr><th>Member No.</th><th>Name / Club</th><th>Mobile</th><th>Designation</th><th>Type / Fee</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminRows"></tbody></table></div>
-        </div>
-    </dialog>
     <script>
         // Paste the newly deployed Apps Script /exec URL here.
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUx5ozk7HzE_g93NR2K9V-uitw3bf9be9O75WPa2k0wFDivpeAVsQnkkmoFs9lGylw/exec';
@@ -225,13 +221,11 @@
         let selectedMember = null;
         let lookupVersion = 0;
         let lookupTimer;
-        let token = sessionStorage.getItem('cabinetAdminToken') || '';
-        let registrationRows = [];
         let callbackSequence = 0;
         let submitting = false;
 
         // JSONP supports Google Apps Script reads from GitHub Pages.
-        function readApi(action, params = {}) {
+        function readApi(action, params = {}, timeoutMs = 30000) {
             return new Promise((resolve, reject) => {
                 const callback = 'cabinetCallback' + (++callbackSequence);
                 const script = document.createElement('script');
@@ -242,7 +236,7 @@
                     script.remove();
                     delete window[callback];
                 };
-                const timeout = setTimeout(() => { cleanup(); reject(new Error('समय सकियो । फेरि प्रयास गर्नुहोस् ।')); }, 30000);
+                const timeout = setTimeout(() => { cleanup(); reject(new Error('समय सकियो । फेरि प्रयास गर्नुहोस् ।')); }, timeoutMs);
                 window[callback] = data => {
                     cleanup();
                     if (data.ok === false) reject(new Error(data.error));
@@ -258,17 +252,30 @@
         async function writeApi(action, data = {}) {
             const bytes = crypto.getRandomValues(new Uint8Array(24));
             const ticket = Array.from(bytes, n => n.toString(16).padStart(2, '0')).join('');
-            await fetch(SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-                body: JSON.stringify({ action, ...data, ticket })
-            });
-            for (let i = 0; i < 12; i++) {
-                const result = await readApi('result', { ticket });
-                if (!result.pending) return result;
-                await new Promise(resolve => setTimeout(resolve, 1000));
+            const deadline = Date.now() + 60000;
+            const controller = new AbortController();
+            const postTimeout = setTimeout(() => controller.abort(), 25000);
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors', signal: controller.signal,
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                    body: JSON.stringify({ action, ...data, ticket })
+                });
+            } catch (error) {
+                // A redirect/network failure can happen after the server saved.
+                // Check the ticket before deciding whether the write failed.
+            } finally { clearTimeout(postTimeout); }
+            while (Date.now() < deadline) {
+                const remaining = deadline - Date.now();
+                try {
+                    const result = await readApi('result', { ticket }, Math.min(10000, remaining));
+                    if (!result.pending) return result;
+                } catch (error) {
+                    if (!error.message.includes('समय सकियो') && !error.message.includes('Server सँग')) throw error;
+                }
+                if (deadline - Date.now() > 1000) await new Promise(resolve => setTimeout(resolve, 1000));
             }
-            throw new Error('दर्ताको पुष्टि प्राप्त भएन । फेरि Submit गर्नुअघि Admin सँग रेकर्ड जाँच गर्नुहोस् ।');
+            throw new Error('Save को पुष्टि समयमै आएन । रेकर्ड सेभ भएको हुन सक्छ; फेरि Submit गर्नुअघि Admin मा जाँच गर्नुहोस् ।');
         }
 
         function cell(row, value, className = '') {
@@ -359,9 +366,18 @@
                     cell(row, 'हालसम्म भुक्तानी पुष्टि भएका सहभागी छैनन् ।').colSpan = 5;
                     $('tableBody').appendChild(row);
                 }
-                if (s.RegistrationStatus !== 'OPEN') $('formStatus').textContent = 'दर्ता अहिले बन्द छ ।';
+                if (s.RegistrationStatus !== 'OPEN') {
+                    $('formStatus').textContent = 'दर्ता अहिले बन्द छ ।';
+                } else if ($('formStatus').textContent === 'दर्ता अहिले बन्द छ ।') {
+                    $('formStatus').textContent = '';
+                }
                 updateSubmit();
             } catch (error) { $('formStatus').textContent = error.message; }
+        }
+
+        function resetLookupButton() {
+            $('lookupButton').disabled = false;
+            $('lookupButton').textContent = 'सदस्य खोज्नुहोस्';
         }
 
         function clearMember() {
@@ -377,6 +393,8 @@
             const version = ++lookupVersion;
             clearMember();
             if (!number) return;
+            $('lookupButton').disabled = true;
+            $('lookupButton').innerHTML = '<span class="spinner" aria-hidden="true"></span> सदस्य खोजिँदैछ...';
             $('lookupStatus').textContent = 'सदस्य खोजिँदैछ...';
             try {
                 const data = await readApi('member', { number });
@@ -389,12 +407,17 @@
                 $('mobileHelp').textContent = selectedMember.mobile ? 'Database बाट आएको मोबाइल नम्बर परिवर्तन गर्न मिल्दैन ।' : 'Database मा मोबाइल नम्बर छैन । आफ्नो मोबाइल नम्बर यहाँ लेख्नुहोस् ।';
                 $('lookupStatus').textContent = 'सदस्य विवरण भेटियो ।';
                 updateSubmit();
-            } catch (error) { if (version === lookupVersion) $('lookupStatus').textContent = error.message; }
+            } catch (error) {
+                if (version === lookupVersion) $('lookupStatus').textContent = error.message;
+            } finally {
+                if (version === lookupVersion) resetLookupButton();
+            }
         }
 
         $('membershipNumber').addEventListener('input', () => {
             clearTimeout(lookupTimer);
             ++lookupVersion;
+            resetLookupButton();
             clearMember();
             $('lookupStatus').textContent = '';
             lookupTimer = setTimeout(lookupMember, 700);
@@ -410,7 +433,7 @@
             const greeting = currentSettings.WhatsAppGreeting;
             submitting = true;
             updateSubmit();
-            $('submitButton').textContent = 'दर्ता सेभ हुँदैछ...';
+            $('submitButton').innerHTML = '<span class="spinner" aria-hidden="true"></span> दर्ता सेभ हुँदैछ...';
             $('formStatus').textContent = '';
             $('whatsappLink').hidden = true;
             try {
@@ -438,111 +461,6 @@
             }
         });
 
-        async function loadAdmin() {
-            const data = await readApi('adminData', { token });
-            registrationRows = data.registrations;
-            $('loginForm').hidden = true;
-            $('adminContent').hidden = false;
-            $('settingsFields').replaceChildren();
-            Object.entries(data.settings).forEach(([key, value]) => {
-                const wrapper = document.createElement('div');
-                const label = document.createElement('label');
-                label.textContent = key;
-                label.htmlFor = 'setting_' + key;
-                const input = document.createElement('input');
-                input.id = 'setting_' + key;
-                input.name = key;
-                input.value = value;
-                wrapper.append(label, input);
-                $('settingsFields').appendChild(wrapper);
-            });
-            const previous = $('meetingFilter').value || data.settings.MeetingID;
-            $('meetingFilter').replaceChildren();
-            const meetings = new Map([[data.settings.MeetingID, data.settings.MeetingName]]);
-            registrationRows.forEach(r => meetings.set(r.MeetingID, r.MeetingName));
-            meetings.forEach((name, id) => {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = name + ' (' + id + ')';
-                $('meetingFilter').appendChild(option);
-            });
-            if (meetings.has(previous)) $('meetingFilter').value = previous;
-            renderAdminRows();
-        }
-
-        function renderAdminRows() {
-            $('adminRows').replaceChildren();
-            registrationRows.filter(r => r.MeetingID === $('meetingFilter').value).forEach(record => {
-                const row = document.createElement('tr');
-                [record.MembershipNumber, record.Name + ' / ' + record.ClubName, record.Mobile, record.Designation, record.MemberType + ' / Rs. ' + record.Fee, record.PaymentStatus].forEach(v => cell(row, v));
-                const button = document.createElement('button');
-                button.textContent = record.PaymentStatus === 'PAID' ? 'Mark Pending' : 'Confirm Paid';
-                button.addEventListener('click', async () => {
-                    if (!confirm(record.Name + ' को भुक्तानी स्थिति परिवर्तन गर्ने?')) return;
-                    button.disabled = true;
-                    try {
-                        await writeApi('payment', { token, id: record.ID, status: record.PaymentStatus === 'PAID' ? 'PENDING' : 'PAID' });
-                        await loadAdmin();
-                        await loadInitialData();
-                    } catch (error) { $('adminStatus').textContent = error.message; button.disabled = false; }
-                });
-                cell(row, '').appendChild(button);
-                $('adminRows').appendChild(row);
-            });
-        }
-
-        $('meetingFilter').addEventListener('change', renderAdminRows);
-        $('adminButton').addEventListener('click', async () => {
-            $('adminDialog').showModal();
-            if (token) {
-                try { await loadAdmin(); }
-                catch (error) { $('adminStatus').textContent = error.message; clearSession(); }
-            }
-        });
-        $('closeAdmin').addEventListener('click', () => $('adminDialog').close());
-        $('loginForm').addEventListener('submit', async event => {
-            event.preventDefault();
-            const button = event.submitter;
-            button.disabled = true;
-            $('adminStatus').textContent = 'Login हुँदैछ...';
-            try {
-                const result = await writeApi('login', { username: $('adminUser').value, password: $('adminPassword').value });
-                token = result.token;
-                sessionStorage.setItem('cabinetAdminToken', token);
-                $('adminPassword').value = '';
-                await loadAdmin();
-                $('adminStatus').textContent = '';
-            } catch (error) { $('adminStatus').textContent = error.message; }
-            finally { button.disabled = false; }
-        });
-        function clearSession() {
-            token = '';
-            sessionStorage.removeItem('cabinetAdminToken');
-            registrationRows = [];
-            $('adminRows').replaceChildren();
-            $('settingsFields').replaceChildren();
-            $('adminContent').hidden = true;
-            $('loginForm').hidden = false;
-        }
-        $('logoutButton').addEventListener('click', async () => {
-            const oldToken = token;
-            clearSession();
-            $('adminStatus').textContent = 'Logout भयो ।';
-            try { await writeApi('logout', { token: oldToken }); }
-            catch (error) { $('adminStatus').textContent = 'स्थानीय Logout भयो । Server session बन्द गर्न सकिएन; एक घण्टामा सकिनेछ ।'; }
-        });
-        $('settingsForm').addEventListener('submit', async event => {
-            event.preventDefault();
-            const button = event.submitter;
-            button.disabled = true;
-            try {
-                await writeApi('saveSettings', { token, settings: Object.fromEntries(new FormData(event.target)) });
-                await loadAdmin();
-                await loadInitialData();
-                $('adminStatus').textContent = 'Settings सेभ भयो ।';
-            } catch (error) { $('adminStatus').textContent = error.message; }
-            finally { button.disabled = false; }
-        });
         loadInitialData();
     </script>
 </body>
