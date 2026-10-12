@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabinet Meeting Registration | District 325 F</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --accent: #e67e22;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: var(--primary);
+            color: #333;
+            padding-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 25px 15px;
+            color: white;
+        }
+        .header img { width: 85px; margin-bottom: 10px; }
+        .header h1 { font-size: 22px; letter-spacing: 1px; margin-bottom: 5px; }
+        .header h2 { font-size: 15px; font-weight: normal; }
+        .container {
+            max-width: 500px;
+            width: 92%;
+            margin: -15px auto 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px 15px;
+            box-shadow: 0 4px 15px #0002;
+        }
+        .title { text-align: center; color: var(--accent); font-size: 24px; margin-bottom: 20px; }
+        .info-box {
+            background: #eef5fc;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--primary);
+        }
+        .info-item { display: flex; margin-bottom: 8px; font-size: 14px; }
+        .info-item b { width: 75px; flex-shrink: 0; }
+        .venue-section { text-align: center; margin-bottom: 20px; }
+        .venue-section img { width: 100%; border-radius: 12px; border: 1px solid #ddd; }
+        .fee-card {
+            background: #fffcf4;
+            border: 2px dashed var(--accent);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .fee-card h3 { color: var(--primary); margin-bottom: 12px; }
+        .fees { display: flex; justify-content: space-around; gap: 10px; }
+        .fees strong { display: block; font-size: 24px; color: var(--accent); }
+        .qr-section { border: 2px solid var(--accent); border-radius: 15px; padding: 15px; text-align: center; margin-bottom: 25px; }
+        .qr-section h3 { color: var(--primary); font-size: 18px; }
+        .qr-badge { background: var(--accent); color: white; display: inline-block; padding: 3px 15px; border-radius: 20px; margin: 6px 0 10px; }
+        .qr-section img { width: 180px; max-width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 10px; margin: 12px 0; }
+        .bank-details { background: #f9f9f9; border-top: 1px dashed #ccc; padding-top: 15px; text-align: left; font-size: 12.5px; line-height: 1.8; overflow-wrap: anywhere; }
+        .form-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        h3 { color: var(--primary); margin-bottom: 12px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 14px; margin-bottom: 5px; font-weight: 600; }
+        input, select { width: 100%; padding: 11px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+        input[readonly] { background: #eaf0f5; }
+        input:focus, select:focus { outline: 2px solid #00336655; }
+        button, .button-link { padding: 12px; background: var(--primary); color: white; border: 0; border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; }
+        button:disabled { opacity: .6; cursor: wait; }
+        .btn-submit { width: 100%; background: #25d366; font-size: 16px; font-weight: bold; }
+        .instruction { font-size: 12px; color: #666; margin: 8px 0; line-height: 1.5; }
+        .status { margin: 10px 0; font-size: 13px; color: var(--primary); }
+        .contacts-card { background: #f5f8fc; border: 1px solid #d2e1f0; border-left: 5px solid var(--primary); border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        .contacts-card h3 { text-align: center; font-size: 15px; }
+        .contact-grid { display: flex; gap: 10px; }
+        .contact-person { flex: 1; text-align: center; font-size: 12px; }
+        .contact-person .role { font-size: 10px; color: #666; }
+        .contact-person strong { display: block; margin: 4px 0; color: var(--primary); }
+        .contact-person a { color: var(--accent); text-decoration: none; font-weight: bold; }
+        .list-section { width: 92%; max-width: 1100px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; }
+        .table-responsive { overflow-x: auto; width: 100%; }
+        table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; overflow-wrap: break-word; }
+        th { background: var(--primary); color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .phone { white-space: nowrap; overflow-wrap: normal; }
+        .dev-footer { text-align: center; color: #fffc; font-size: 12px; margin-top: 20px; }
+        .dev-footer a { color: white; font-weight: bold; text-decoration: none; }
+        .admin-launch { display: block; margin: 15px auto; border: 1px solid #ffffff66; }
+        dialog { width: 94%; max-width: 1100px; max-height: 90vh; border: 0; border-radius: 14px; margin: auto; padding: 22px; overflow: auto; }
+        dialog::backdrop { background: #0008; }
+        .admin-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
+        .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+        #loginForm { max-width: 400px; margin: auto; }
+        [hidden] { display: none !important; }
+        @media (max-width: 540px) {
+            .title { font-size: 22px; }
+            .list-section { padding: 12px; }
+            .settings-grid { grid-template-columns: 1fr; }
+            .fees strong { font-size: 21px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <img src="logo.png" alt="Lions Logo">
+        <h1>LIONS INTERNATIONAL</h1>
+        <h2>District 325 F</h2>
+    </header>
+    <main class="container">
+        <h2 class="title" id="meetingTitle">Cabinet Meeting Registration</h2>
+        <section class="info-box">
+            <div class="info-item"><b>📅 मिति:</b><span id="meetingDate">लोड हुँदैछ...</span></div>
+            <div class="info-item"><b>📍 स्थान:</b><span id="meetingVenue"></span></div>
+            <div class="info-item"><b>⏰ समय:</b><span id="meetingTime"></span></div>
+        </section>
+        <div class="venue-section"><img src="venue.jpg" alt="Event Venue" onerror="this.hidden=true"></div>
+        <section class="fee-card">
+            <h3>Registration</h3>
+            <div class="fees">
+                <div>Lion Member<strong id="lionFee">—</strong>Only</div>
+                <div>Leo Member<strong id="leoFee">—</strong>Only</div>
+            </div>
+        </section>
+        <section class="qr-section">
+            <h3>रजिष्ट्रेसनका लागि</h3>
+            <div class="qr-badge">Scan to Pay</div>
+            <p class="instruction">भुक्तानीको लागि क्युआर कोड स्क्यान गर्नुहोस् ।</p>
+            <img src="Scan &amp; Pay.jpg" alt="Scan to Pay">
+            <div class="bank-details" id="bankDetails"></div>
+        </section>
+        <section class="form-box">
+            <h3>📝 सहभागी दर्ता फारम</h3>
+            <form id="pstForm">
+                <div class="form-group">
+                    <label for="membershipNumber">सदस्यता नम्बर:</label>
+                    <input id="membershipNumber" inputmode="numeric" placeholder="सदस्यता नम्बर लेख्नुहोस्" required maxlength="15">
+                    <button type="button" id="lookupButton" style="margin-top:8px">सदस्य खोज्नुहोस्</button>
+                    <p id="lookupStatus" class="status" role="status"></p>
+                </div>
+                <div class="form-group"><label for="fullName">सहभागीको नाम:</label><input id="fullName" readonly required placeholder="स्वतः देखिनेछ"></div>
+                <div class="form-group"><label for="clubName">क्लबको नाम:</label><input id="clubName" readonly required placeholder="स्वतः देखिनेछ"></div>
+                <div class="form-group"><label for="phoneNumber">सम्पर्क / WhatsApp नम्बर:</label><input id="phoneNumber" type="tel" readonly required placeholder="स्वतः देखिनेछ"><p id="mobileHelp" class="instruction"></p></div>
+                <div class="form-group"><label for="designation">पद (Designation):</label><input id="designation" required maxlength="100" placeholder="आफ्नो पद लेख्नुहोस्"></div>
+                <div class="form-group"><label for="memberType">सदस्य प्रकार:</label><select id="memberType" required><option value="Lion">Lion Member</option><option value="Leo">Leo Member</option></select></div>
+                <button type="submit" id="submitButton" class="btn-submit" disabled>Submit &amp; Send to WhatsApp</button>
+                <p class="instruction">दर्ता सेभ भएको पुष्टि भएपछि WhatsApp खुल्नेछ । भौचरको फोटो WhatsApp मा आफैँ संलग्न गर्नुहोस् ।</p>
+                <p id="formStatus" class="status" role="status"></p>
+                <a id="whatsappLink" class="button-link" target="_blank" rel="noopener" hidden>WhatsApp खोल्नुहोस्</a>
+            </form>
+        </section>
+        <section class="contacts-card">
+            <h3>📞 For more details</h3>
+            <div class="contact-grid">
+                <div class="contact-person"><div class="role">Cabinet Secretary</div><strong id="secretaryName"></strong><a id="secretaryPhone"></a></div>
+                <div class="contact-person"><div class="role">Cabinet Treasurer</div><strong id="treasurerName"></strong><a id="treasurerPhone"></a></div>
+            </div>
+        </section>
+    </main>
+    <section class="list-section">
+        <h3>💵 Paid List</h3>
+        <div class="table-responsive">
+            <table>
+                <colgroup><col style="width:6%"><col style="width:26%"><col style="width:29%"><col style="width:21%"><col style="width:18%"></colgroup>
+                <thead><tr><th>S.N.</th><th>Name</th><th>Club Name</th><th>Designation</th><th>Contact No.</th></tr></thead>
+                <tbody id="tableBody"><tr><td colspan="5">डाटा लोड हुँदैछ...</td></tr></tbody>
+            </table>
+        </div>
+    </section>
+    <button class="admin-launch" id="adminButton">Admin Login</button>
+    <footer class="dev-footer">Designed by : <a href="tel:9851113811">Nirajan Aryal (9851113811)</a></footer>
+    <dialog id="adminDialog">
+        <div class="admin-top"><h3>Admin Panel</h3><button type="button" id="closeAdmin">Close</button></div>
+        <p id="adminStatus" class="status" role="status"></p>
+        <form id="loginForm">
+            <div class="form-group"><label for="adminUser">Username</label><input id="adminUser" autocomplete="username" required></div>
+            <div class="form-group"><label for="adminPassword">Password</label><input id="adminPassword" type="password" autocomplete="current-password" required></div>
+            <button>Login</button>
+        </form>
+        <div id="adminContent" hidden>
+            <button type="button" id="logoutButton">Logout</button>
+            <h3 style="margin-top:20px">Meeting Settings</h3>
+            <p class="instruction">नयाँ Meeting का लागि छुट्टै MeetingID राख्नुहोस् (जस्तै 2026-27-Third) । पुरानो Meeting को नाम वा ID परिवर्तन गरेर नयाँ Meeting नबनाउनुहोस्; नयाँ ID राख्दा पुराना दर्ता सुरक्षित रहन्छन् ।</p>
+            <form id="settingsForm"><div class="settings-grid" id="settingsFields"></div><button style="margin:15px 0">Save Settings</button></form>
+            <h3>Registrations / Payment Confirmation</h3>
+            <label for="meetingFilter">Meeting छान्नुहोस्</label><select id="meetingFilter" style="margin-bottom:15px"></select>
+            <div class="table-responsive"><table style="min-width:1000px"><thead><tr><th>Member No.</th><th>Name / Club</th><th>Mobile</th><th>Designation</th><th>Type / Fee</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminRows"></tbody></table></div>
+        </div>
+    </dialog>
+    <script>
+        // Paste the newly deployed Apps Script /exec URL here.
+        const SCRIPT_URL = 'PASTE_NEW_APPS_SCRIPT_EXEC_URL_HERE';
+        const $ = id => document.getElementById(id);
+        let currentSettings = {};
+        let selectedMember = null;
+        let lookupVersion = 0;
+        let lookupTimer;
+        let token = sessionStorage.getItem('cabinetAdminToken') || '';
+        let registrationRows = [];
+        let callbackSequence = 0;
+        let submitting = false;
+
+        // JSONP supports Google Apps Script reads from GitHub Pages.
+        function readApi(action, params = {}) {
+            return new Promise((resolve, reject) => {
+                const callback = 'cabinetCallback' + (++callbackSequence);
+                const script = document.createElement('script');
+                const url = new URL(SCRIPT_URL);
+                Object.entries({ action, ...params, callback }).forEach(([key, value]) => url.searchParams.set(key, value));
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    script.remove();
+                    delete window[callback];
+                };
+                const timeout = setTimeout(() => { cleanup(); reject(new Error('समय सकियो । फेरि प्रयास गर्नुहोस् ।')); }, 30000);
+                window[callback] = data => {
+                    cleanup();
+                    if (data.ok === false) reject(new Error(data.error));
+                    else resolve(data);
+                };
+                script.onerror = () => { cleanup(); reject(new Error('Server सँग सम्पर्क भएन । Deployment URL जाँच गर्नुहोस् ।')); };
+                script.src = url.href;
+                document.head.appendChild(script);
+            });
+        }
+
+        // An opaque POST is followed by a server result check; no false success.
+        async function writeApi(action, data = {}) {
+            const bytes = crypto.getRandomValues(new Uint8Array(24));
+            const ticket = Array.from(bytes, n => n.toString(16).padStart(2, '0')).join('');
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                body: JSON.stringify({ action, ...data, ticket })
+            });
+            for (let i = 0; i < 12; i++) {
+                const result = await readApi('result', { ticket });
+                if (!result.pending) return result;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            throw new Error('दर्ताको पुष्टि प्राप्त भएन । फेरि Submit गर्नुअघि Admin सँग रेकर्ड जाँच गर्नुहोस् ।');
+        }
+
+        function cell(row, value, className = '') {
+            const td = document.createElement('td');
+            td.textContent = value;
+            td.className = className;
+            row.appendChild(td);
+            return td;
+        }
+
+        function updateSubmit() {
+            $('submitButton').disabled = submitting || !selectedMember || currentSettings.RegistrationStatus !== 'OPEN';
+        }
+
+        async function loadInitialData() {
+            if (SCRIPT_URL.includes('PASTE_')) {
+                $('formStatus').textContent = 'index.html मा नयाँ Apps Script Deployment URL राख्नुहोस् ।';
+                $('tableBody').textContent = '';
+                return;
+            }
+            try {
+                const data = await readApi('initial');
+                currentSettings = data.settings;
+                const s = currentSettings;
+                $('meetingTitle').textContent = s.MeetingName + ' Registration';
+                document.title = s.MeetingName + ' Registration | District 325 F';
+                $('meetingDate').textContent = s.Date;
+                $('meetingVenue').textContent = s.Venue;
+                $('meetingTime').textContent = s.Time;
+                $('lionFee').textContent = 'Rs. ' + Number(s.LionFee).toLocaleString('en-US');
+                $('leoFee').textContent = 'Rs. ' + Number(s.LeoFee).toLocaleString('en-US');
+                $('bankDetails').replaceChildren();
+                [['A/C Holder Name', 'AccountHolder'], ['Account Number', 'AccountNumber'], ['Bank Name', 'BankName'], ['Bank Branch', 'BankBranch']].forEach(([label, key]) => {
+                    const div = document.createElement('div');
+                    const bold = document.createElement('b');
+                    bold.textContent = label + ': ';
+                    div.append(bold, document.createTextNode(s[key] || ''));
+                    $('bankDetails').appendChild(div);
+                });
+                ['secretary', 'treasurer'].forEach(role => {
+                    const prefix = role[0].toUpperCase() + role.slice(1);
+                    $(role + 'Name').textContent = s[prefix + 'Name'];
+                    $(role + 'Phone').textContent = s[prefix + 'Phone'];
+                    $(role + 'Phone').href = 'tel:' + s[prefix + 'Phone'];
+                });
+                $('tableBody').replaceChildren();
+                data.paidList.forEach((item, i) => {
+                    const row = document.createElement('tr');
+                    [i + 1, item.name, item.clubName, item.designation].forEach(v => cell(row, v));
+                    cell(row, item.phone, 'phone');
+                    $('tableBody').appendChild(row);
+                });
+                if (!data.paidList.length) {
+                    const row = document.createElement('tr');
+                    cell(row, 'हालसम्म भुक्तानी पुष्टि भएका सहभागी छैनन् ।').colSpan = 5;
+                    $('tableBody').appendChild(row);
+                }
+                if (s.RegistrationStatus !== 'OPEN') $('formStatus').textContent = 'दर्ता अहिले बन्द छ ।';
+                updateSubmit();
+            } catch (error) { $('formStatus').textContent = error.message; }
+        }
+
+        function clearMember() {
+            selectedMember = null;
+            ['fullName', 'clubName', 'phoneNumber'].forEach(id => $(id).value = '');
+            $('phoneNumber').readOnly = true;
+            $('mobileHelp').textContent = '';
+            updateSubmit();
+        }
+
+        async function lookupMember() {
+            const number = $('membershipNumber').value.trim();
+            const version = ++lookupVersion;
+            clearMember();
+            if (!number) return;
+            $('lookupStatus').textContent = 'सदस्य खोजिँदैछ...';
+            try {
+                const data = await readApi('member', { number });
+                if (version !== lookupVersion) return;
+                selectedMember = data.member;
+                $('fullName').value = selectedMember.name;
+                $('clubName').value = selectedMember.clubName;
+                $('phoneNumber').value = selectedMember.mobile;
+                $('phoneNumber').readOnly = Boolean(selectedMember.mobile);
+                $('mobileHelp').textContent = selectedMember.mobile ? 'Database बाट आएको मोबाइल नम्बर परिवर्तन गर्न मिल्दैन ।' : 'Database मा मोबाइल नम्बर छैन । आफ्नो मोबाइल नम्बर यहाँ लेख्नुहोस् ।';
+                $('lookupStatus').textContent = 'सदस्य विवरण भेटियो ।';
+                updateSubmit();
+            } catch (error) { if (version === lookupVersion) $('lookupStatus').textContent = error.message; }
+        }
+
+        $('membershipNumber').addEventListener('input', () => {
+            clearTimeout(lookupTimer);
+            ++lookupVersion;
+            clearMember();
+            $('lookupStatus').textContent = '';
+            lookupTimer = setTimeout(lookupMember, 700);
+        });
+        $('lookupButton').addEventListener('click', () => { clearTimeout(lookupTimer); lookupMember(); });
+
+        $('pstForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            if (!selectedMember || submitting) return;
+            const designation = $('designation').value.trim();
+            const memberType = $('memberType').value;
+            const receiver = currentSettings.WhatsAppNumber;
+            const greeting = currentSettings.WhatsAppGreeting;
+            submitting = true;
+            updateSubmit();
+            $('submitButton').textContent = 'दर्ता सेभ हुँदैछ...';
+            $('formStatus').textContent = '';
+            $('whatsappLink').hidden = true;
+            try {
+                const result = await writeApi('register', {
+                    meetingID: currentSettings.MeetingID,
+                    membershipNumber: selectedMember.membershipNumber,
+                    mobile: $('phoneNumber').value,
+                    designation, memberType
+                });
+                const message = `${greeting}\n\n${result.meetingName} को लागि मेरो रजिष्ट्रेसन विवरण:\n*सदस्यता नम्बर:* ${result.member.membershipNumber}\n*नाम:* ${result.member.name}\n*क्लब:* ${result.member.clubName}\n*पद:* ${designation}\n*सदस्य प्रकार:* ${memberType}\n*मोबाइल:* ${result.mobile}\n*शुल्क:* Rs. ${result.fee}\n\nभुक्तानी भौचरको फोटो यसै WhatsApp मा पठाउँछु ।`;
+                const phone = receiver.startsWith('977') ? receiver : '977' + receiver;
+                const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                $('whatsappLink').href = url;
+                $('whatsappLink').hidden = false;
+                $('formStatus').textContent = 'दर्ता सफल भयो । भुक्तानी पुष्टि भएपछि Paid List मा देखिनेछ ।';
+                window.open(url, '_blank', 'noopener');
+                $('pstForm').reset();
+                clearMember();
+                $('lookupStatus').textContent = '';
+            } catch (error) { $('formStatus').textContent = error.message; }
+            finally {
+                submitting = false;
+                $('submitButton').textContent = 'Submit & Send to WhatsApp';
+                updateSubmit();
+            }
+        });
+
+        async function loadAdmin() {
+            const data = await readApi('adminData', { token });
+            registrationRows = data.registrations;
+            $('loginForm').hidden = true;
+            $('adminContent').hidden = false;
+            $('settingsFields').replaceChildren();
+            Object.entries(data.settings).forEach(([key, value]) => {
+                const wrapper = document.createElement('div');
+                const label = document.createElement('label');
+                label.textContent = key;
+                label.htmlFor = 'setting_' + key;
+                const input = document.createElement('input');
+                input.id = 'setting_' + key;
+                input.name = key;
+                input.value = value;
+                wrapper.append(label, input);
+                $('settingsFields').appendChild(wrapper);
+            });
+            const previous = $('meetingFilter').value || data.settings.MeetingID;
+            $('meetingFilter').replaceChildren();
+            const meetings = new Map([[data.settings.MeetingID, data.settings.MeetingName]]);
+            registrationRows.forEach(r => meetings.set(r.MeetingID, r.MeetingName));
+            meetings.forEach((name, id) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name + ' (' + id + ')';
+                $('meetingFilter').appendChild(option);
+            });
+            if (meetings.has(previous)) $('meetingFilter').value = previous;
+            renderAdminRows();
+        }
+
+        function renderAdminRows() {
+            $('adminRows').replaceChildren();
+            registrationRows.filter(r => r.MeetingID === $('meetingFilter').value).forEach(record => {
+                const row = document.createElement('tr');
+                [record.MembershipNumber, record.Name + ' / ' + record.ClubName, record.Mobile, record.Designation, record.MemberType + ' / Rs. ' + record.Fee, record.PaymentStatus].forEach(v => cell(row, v));
+                const button = document.createElement('button');
+                button.textContent = record.PaymentStatus === 'PAID' ? 'Mark Pending' : 'Confirm Paid';
+                button.addEventListener('click', async () => {
+                    if (!confirm(record.Name + ' को भुक्तानी स्थिति परिवर्तन गर्ने?')) return;
+                    button.disabled = true;
+                    try {
+                        await writeApi('payment', { token, id: record.ID, status: record.PaymentStatus === 'PAID' ? 'PENDING' : 'PAID' });
+                        await loadAdmin();
+                        await loadInitialData();
+                    } catch (error) { $('adminStatus').textContent = error.message; button.disabled = false; }
+                });
+                cell(row, '').appendChild(button);
+                $('adminRows').appendChild(row);
+            });
+        }
+
+        $('meetingFilter').addEventListener('change', renderAdminRows);
+        $('adminButton').addEventListener('click', async () => {
+            $('adminDialog').showModal();
+            if (token) {
+                try { await loadAdmin(); }
+                catch (error) { $('adminStatus').textContent = error.message; clearSession(); }
+            }
+        });
+        $('closeAdmin').addEventListener('click', () => $('adminDialog').close());
+        $('loginForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const button = event.submitter;
+            button.disabled = true;
+            $('adminStatus').textContent = 'Login हुँदैछ...';
+            try {
+                const result = await writeApi('login', { username: $('adminUser').value, password: $('adminPassword').value });
+                token = result.token;
+                sessionStorage.setItem('cabinetAdminToken', token);
+                $('adminPassword').value = '';
+                await loadAdmin();
+                $('adminStatus').textContent = '';
+            } catch (error) { $('adminStatus').textContent = error.message; }
+            finally { button.disabled = false; }
+        });
+        function clearSession() {
+            token = '';
+            sessionStorage.removeItem('cabinetAdminToken');
+            registrationRows = [];
+            $('adminRows').replaceChildren();
+            $('settingsFields').replaceChildren();
+            $('adminContent').hidden = true;
+            $('loginForm').hidden = false;
+        }
+        $('logoutButton').addEventListener('click', async () => {
+            const oldToken = token;
+            clearSession();
+            $('adminStatus').textContent = 'Logout भयो ।';
+            try { await writeApi('logout', { token: oldToken }); }
+            catch (error) { $('adminStatus').textContent = 'स्थानीय Logout भयो । Server session बन्द गर्न सकिएन; एक घण्टामा सकिनेछ ।'; }
+        });
+        $('settingsForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const button = event.submitter;
+            button.disabled = true;
+            try {
+                await writeApi('saveSettings', { token, settings: Object.fromEntries(new FormData(event.target)) });
+                await loadAdmin();
+                await loadInitialData();
+                $('adminStatus').textContent = 'Settings सेभ भयो ।';
+            } catch (error) { $('adminStatus').textContent = error.message; }
+            finally { button.disabled = false; }
+        });
+        loadInitialData();
+    </script>
+</body>
+</html>
