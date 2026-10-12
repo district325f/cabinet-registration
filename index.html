@@ -153,6 +153,13 @@
             font-weight: 600;
             line-height: 1.5;
         }
+        .btn-submit.registration-closed,
+        .btn-submit.registration-closed:disabled {
+            background: #c7353d;
+            color: white;
+            opacity: 1;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -300,7 +307,23 @@
         }
 
         function updateSubmit() {
-            $('submitButton').disabled = submitting || !selectedMember || currentSettings.RegistrationStatus !== 'OPEN';
+            const button = $('submitButton');
+            const status = String(currentSettings.RegistrationStatus || '').trim().toUpperCase();
+            const isOpen = status === 'OPEN';
+            const isClosed = Boolean(status) && !isOpen;
+            button.classList.toggle('registration-closed', isClosed);
+            button.disabled = submitting || !selectedMember || !isOpen;
+            button.setAttribute('aria-busy', String(submitting));
+            if (isClosed) {
+                button.textContent = 'दर्ता अहिले बन्द छ ।';
+            } else if (submitting) {
+                button.innerHTML = '<span class="spinner" aria-hidden="true"></span> दर्ता सेभ हुँदैछ...';
+            } else {
+                button.textContent = 'Submit & Send to WhatsApp';
+            }
+            if ($('formStatus').textContent === 'दर्ता अहिले बन्द छ ।') {
+                $('formStatus').textContent = '';
+            }
         }
 
         async function loadInitialData() {
@@ -379,11 +402,6 @@
                     cell(row, 'हालसम्म भुक्तानी पुष्टि भएका सहभागी छैनन् ।').colSpan = 5;
                     $('tableBody').appendChild(row);
                 }
-                if (s.RegistrationStatus !== 'OPEN') {
-                    $('formStatus').textContent = 'दर्ता अहिले बन्द छ ।';
-                } else if ($('formStatus').textContent === 'दर्ता अहिले बन्द छ ।') {
-                    $('formStatus').textContent = '';
-                }
                 updateSubmit();
             } catch (error) { $('formStatus').textContent = error.message; }
         }
@@ -439,7 +457,7 @@
 
         $('pstForm').addEventListener('submit', async event => {
             event.preventDefault();
-            if (!selectedMember || submitting) return;
+            if (!selectedMember || submitting || String(currentSettings.RegistrationStatus).trim().toUpperCase() !== 'OPEN') return;
             const designation = $('designation').value.trim();
             const memberType = $('memberType').value;
             const receiver = currentSettings.WhatsAppNumber;
@@ -466,7 +484,14 @@
                 $('pstForm').reset();
                 clearMember();
                 $('lookupStatus').textContent = '';
-            } catch (error) { $('formStatus').textContent = error.message; }
+            } catch (error) {
+                if (error.message === 'दर्ता अहिले बन्द छ ।') {
+                    currentSettings.RegistrationStatus = 'CLOSED';
+                    $('formStatus').textContent = '';
+                } else {
+                    $('formStatus').textContent = error.message;
+                }
+            }
             finally {
                 submitting = false;
                 $('submitButton').textContent = 'Submit & Send to WhatsApp';
