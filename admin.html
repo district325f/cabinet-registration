@@ -215,6 +215,50 @@
                 font-size: 23px;
             }
         }
+        .registration-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 18px;
+            margin: 20px 0;
+            background: #f5f8fc;
+            border: 1px solid #dce3eb;
+            border-radius: 12px;
+        }
+        .registration-control label {
+            font-size: 16px;
+            color: #003366;
+        }
+        .registration-control .instruction {
+            margin: 0;
+        }
+        .registration-control select {
+            width: 280px;
+            max-width: 100%;
+            min-height: 46px;
+            font-weight: 600;
+        }
+        select.status-open {
+            background: #e9f8ef;
+            color: #17693a;
+            border-color: #93cca9;
+        }
+        select.status-closed {
+            background: #fff0f0;
+            color: #a52c35;
+            border-color: #e8aeb3;
+        }
+        @media (max-width: 600px) {
+            .registration-control {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .registration-control select {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -256,7 +300,18 @@
             <section id="meetingSettings">
                 <h2>Meeting Settings</h2>
                 <p class="instruction">नयाँ Meeting का लागि नयाँ MeetingID राख्नुहोस् । विवरण यहीँबाट परिवर्तन गर्न मिल्छ । Admin खाताहरू User Sheet बाट व्यवस्थापन हुन्छन् ।</p>
-                <form id="settingsForm"><div class="settings-grid" id="settingsFields"></div><button style="margin-top:16px">Save Settings</button></form>
+                <form id="settingsForm">
+                    <div class="registration-control">
+                        <div>
+                            <label for="setting_RegistrationStatus">RegistrationStatus</label>
+                            <p class="instruction">सहभागी दर्ता खुला वा बन्द राख्नुहोस् ।</p>
+                        </div>
+                        <select id="setting_RegistrationStatus" name="RegistrationStatus" required>
+                            <option value="OPEN">OPEN — दर्ता खुला</option>
+                            <option value="CLOSED">CLOSED — दर्ता बन्द</option>
+                        </select>
+                    </div>
+                    <div class="settings-grid" id="settingsFields"></div><button style="margin-top:16px">Save Settings</button></form>
             </section>
             <section id="registrationDetails">
                 <h2>Registration Member Details</h2>
@@ -364,7 +419,10 @@
             $('loginSection').hidden = true;
             $('adminContent').hidden = false;
             $('settingsFields').replaceChildren();
+            $('setting_RegistrationStatus').value = String(data.settings.RegistrationStatus).trim().toUpperCase() === 'OPEN' ? 'OPEN' : 'CLOSED';
+            paintRegistrationStatus();
             Object.entries(data.settings).forEach(([key, value]) => {
+                if (key === 'RegistrationStatus') return;
                 const wrapper = document.createElement('div');
                 const label = document.createElement('label');
                 label.textContent = key;
@@ -433,6 +491,12 @@
             });
         }
 
+        function paintRegistrationStatus() {
+            const select = $('setting_RegistrationStatus');
+            select.classList.toggle('status-open', select.value === 'OPEN');
+            select.classList.toggle('status-closed', select.value === 'CLOSED');
+        }
+        $('setting_RegistrationStatus').addEventListener('change', paintRegistrationStatus);
         $('meetingFilter').addEventListener('change', renderAdminRows);
         $('loginForm').addEventListener('submit', async event => {
             event.preventDefault();
