@@ -196,6 +196,7 @@
         </section>
         <section class="form-box">
             <h3>📝 सहभागी दर्ता फारम</h3>
+            <p class="instruction">सबै विवरण अनिवार्य छन् । नाम र क्लब सदस्यता नम्बरबाट स्वतः आउँछन् ।</p>
             <form id="pstForm">
                 <div class="form-group">
                     <label for="membershipNumber">सदस्यता नम्बर:</label>
@@ -437,6 +438,7 @@
                 $('phoneNumber').readOnly = Boolean(selectedMember.mobile);
                 $('mobileHelp').textContent = selectedMember.mobile ? 'Database बाट आएको मोबाइल नम्बर परिवर्तन गर्न मिल्दैन ।' : 'Database मा मोबाइल नम्बर छैन । आफ्नो मोबाइल नम्बर यहाँ लेख्नुहोस् ।';
                 $('lookupStatus').textContent = 'सदस्य विवरण भेटियो ।';
+                $('formStatus').textContent = '';
                 updateSubmit();
             } catch (error) {
                 if (version === lookupVersion) $('lookupStatus').textContent = error.message;
@@ -457,7 +459,37 @@
 
         $('pstForm').addEventListener('submit', async event => {
             event.preventDefault();
-            if (!selectedMember || submitting || String(currentSettings.RegistrationStatus).trim().toUpperCase() !== 'OPEN') return;
+            if (submitting || String(currentSettings.RegistrationStatus).trim().toUpperCase() !== 'OPEN') return;
+            const membershipNumber = $('membershipNumber').value.trim().replace(/[०-९]/g, digit => '०१२३४५६७८९'.indexOf(digit));
+            if (!selectedMember || membershipNumber !== selectedMember.membershipNumber) {
+                $('formStatus').textContent = 'सदस्यता नम्बर लेखेर पहिले सदस्य खोज्नुहोस् ।';
+                $('membershipNumber').focus();
+                return;
+            }
+            const requiredFields = [
+                ['fullName', 'सहभागीको नाम'],
+                ['clubName', 'क्लबको नाम'],
+                ['phoneNumber', 'मोबाइल नम्बर'],
+                ['designation', 'पद'],
+                ['memberType', 'सदस्य प्रकार']
+            ];
+            for (const [id, label] of requiredFields) {
+                if (!$(id).value.trim()) {
+                    $('formStatus').textContent = label + ' अनिवार्य छ ।';
+                    $(id).focus();
+                    return;
+                }
+            }
+            if (!$('phoneNumber').readOnly) {
+                const mobile = $('phoneNumber').value.trim()
+                    .replace(/[०-९]/g, digit => '०१२३४५६७८९'.indexOf(digit))
+                    .replace(/[\s()-]/g, '');
+                if (!/^(?:\+?977)?9\d{9}$/.test(mobile)) {
+                    $('formStatus').textContent = 'सही १० अङ्कको मोबाइल नम्बर लेख्नुहोस् ।';
+                    $('phoneNumber').focus();
+                    return;
+                }
+            }
             const designation = $('designation').value.trim();
             const memberType = $('memberType').value;
             const receiver = currentSettings.WhatsAppNumber;
