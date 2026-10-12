@@ -96,7 +96,24 @@
         .phone { white-space: nowrap; overflow-wrap: normal; }
         .dev-footer { text-align: center; color: #fffc; font-size: 12px; margin-top: 20px; }
         .dev-footer a { color: white; font-weight: bold; text-decoration: none; }
-        .admin-launch { display: block; margin: 15px auto; border: 1px solid #ffffff66; }
+        .top-actions {
+            width: 92%;
+            max-width: 1100px;
+            margin: 12px auto 0;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .admin-launch {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 10px 16px;
+            margin: 0;
+            border: 1px solid #ffffff66;
+            font-size: 14px;
+            white-space: nowrap;
+        }
         dialog { width: 94%; max-width: 1100px; max-height: 90vh; border: 0; border-radius: 14px; margin: auto; padding: 22px; overflow: auto; }
         dialog::backdrop { background: #0008; }
         .admin-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
@@ -112,6 +129,9 @@
     </style>
 </head>
 <body>
+    <nav class="top-actions" aria-label="Admin access">
+        <button class="admin-launch" id="adminButton">Admin Login</button>
+    </nav>
     <header class="header">
         <img src="logo.png" alt="Lions Logo">
         <h1>LIONS INTERNATIONAL</h1>
@@ -136,7 +156,8 @@
             <h3>रजिष्ट्रेसनका लागि</h3>
             <div class="qr-badge">Scan to Pay</div>
             <p class="instruction">भुक्तानीको लागि क्युआर कोड स्क्यान गर्नुहोस् ।</p>
-            <img src="Scan &amp; Pay.jpg" alt="Scan to Pay">
+            <img id="paymentQR" alt="Scan to Pay" hidden>
+            <p id="qrStatus" class="instruction" role="status"></p>
             <div class="bank-details" id="bankDetails"></div>
         </section>
         <section class="form-box">
@@ -177,7 +198,6 @@
             </table>
         </div>
     </section>
-    <button class="admin-launch" id="adminButton">Admin Login</button>
     <footer class="dev-footer">Designed by : <a href="tel:9851113811">Nirajan Aryal (9851113811)</a></footer>
     <dialog id="adminDialog">
         <div class="admin-top"><h3>Admin Panel</h3><button type="button" id="closeAdmin">Close</button></div>
@@ -273,6 +293,25 @@
                 const data = await readApi('initial');
                 currentSettings = data.settings;
                 const s = currentSettings;
+                // QR image source is configured in Meeting_Settings.
+                const qrPath = String(s.QRImageURL || '').trim();
+                let qrURL;
+                try {
+                    qrURL = new URL(qrPath, window.location.href);
+                    if (!qrPath || qrURL.protocol !== 'https:') throw new Error('Invalid image path');
+                    $('paymentQR').onload = () => {
+                        $('paymentQR').hidden = false;
+                        $('qrStatus').textContent = '';
+                    };
+                    $('paymentQR').onerror = () => {
+                        $('paymentQR').hidden = true;
+                        $('qrStatus').textContent = 'QR image लोड भएन । Admin ले QRImageURL जाँच गर्नुहोस् ।';
+                    };
+                    $('paymentQR').src = qrURL.href;
+                } catch (error) {
+                    $('paymentQR').hidden = true;
+                    $('qrStatus').textContent = 'Admin ले Meeting_Settings मा QRImageURL राख्नुहोस् ।';
+                }
                 $('meetingTitle').textContent = s.MeetingName + ' Registration';
                 document.title = s.MeetingName + ' Registration | District 325 F';
                 $('meetingDate').textContent = s.Date;
